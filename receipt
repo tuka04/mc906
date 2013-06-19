@@ -1,0 +1,5 @@
+1) Dicionario: I currently consider alphanumeric characters, dashes, apostrophes, and dollar signs to be part of tokens, and everything else to be a token separator. 
+
+2) Separar o dicionario pelo maior numero de ocorrencia de palavras
+ --> Ideia: Ocorrencias no mesmo email contam mais?
+

@@ -2,4 +2,8 @@
 
 2) Separar o dicionario pelo maior numero de ocorrencia de palavras
  --> Ideia: Ocorrencias no mesmo email contam mais?
+ --> Ideia: Histograma de palavras? 
+     ---> Problemas: Um histograma de palavras com duas palavras de significado similar, contribuem separadamente para o histograma. (Sinonimos!!)
+          |----> Solucao: Alternativa, utilizar a estatistica do contexto das palavras para, assim, prover seus relacionamentos.
+
 

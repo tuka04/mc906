@@ -1,0 +1,2 @@
+import glob #pacote para leitura do diretorio
+diretorio = "~/unicamp/mc906/cluster-txt/messages/*.txt"

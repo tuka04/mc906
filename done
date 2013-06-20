@@ -1,0 +1,2 @@
+1) Dicionario: Gera um vetor ordenado pelo numero total de ocorrencias da palavra, traz tbm a qntidade de arquivos q ocorre a palavra
+   |--> Daqui extraimos um valor w = n_ocorrencia / n_ocorrencias_em_arquivos;

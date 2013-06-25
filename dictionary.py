@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from sets import Set
+from sets import Set #pacote de Set
 import os #pacote para leitura do diretorio
 import sys #pacote sys para exit
 diretorio = "/home/leandro/unicamp/mc906/cluster-txt/messages/"#diretorio das mensagens
@@ -45,6 +45,28 @@ def UpdateDictionary(s,w,name_arq):
        s.append([w,2,1,name_arq])#segunda ocorrencia
        s.sort(key=lambda x: x[0]) #sort pela primeira coluna (palavras)
    return 0
+
+def WriteDictionary():
+    file = "dictionary"
+    arq = open("./"+file,"w")#abrindo documento
+    for d in dictionary:
+        arq.write(d[0]+"  "+d[1]+"\n")
+
+def BuildDictionary(s):
+    for i in s:
+        p_palavra = i[1] / totalPalavras #proporcao de ocorrencia da palavra pelo total de palavras
+        p_arq = i[2] / len(arquivos) #proporcao de qntos arquivo ocorre a palavra pelo total de arquivos
+        ppa = p_palavra * p_arq #Prob de selecionar uma Palavra e esta estar em um determinado Arquivo
+        tam = len(dictionary)
+        if tam > NUM_WORDS_DICTIONARY:
+            if ppa > dictionary[0][1]:
+                print ppa
+                dictionary[0][0] =i[0]
+                dictionary[0][1] = ppa
+        else:
+            dictionary.append([i[0],ppa])
+        dictionary.sort(key=lambda x: x[1]) #sort por ppa
+    WriteDictionary()
     
 contador = 0
 totalPalavras = 0
@@ -69,28 +91,7 @@ for f in arquivos:
             word = ""
         else:
             word = word + c
-BuldDictionary(col_dictionary)
-
-def BuildDictionary(s):
-    for i in s:
-        p_palavra = s[i][1] / total_palavras #proporcao de ocorrencia da palavra pelo total de palavras
-        p_arq = s[i][2] / len(arquivos) #proporcao de qntos arquivo ocorre a palavra pelo total de arquivos
-        ppa = p_palavra * p_arq #Prob de selecionar uma Palavra e esta estar em um determinado Arquivo
-        tam = len(dictionary)
-        if tam > NUM_WORDS_DICTIONARY:
-            if ppa > dictionary[tam-1][1]:
-                dictionary[tam-1][0] = s[i][0]
-                dictionary[tam-1][1] = ppa
-        else:
-            dictionary.appen([s[i][0],ppa])
-        dictionary.sort(key=lambda x: x[1]) #sort por ppa
-    WriteDictionary()
-
-def WriteDictionary():
-    file = "dictionary"
-    arq = open("./"+f,"w")#abrindo documento
-    for i in len(dictionary):
-        arq.write(dictionary[i][0])
+BuildDictionary(col_dictionary)
         
 
 

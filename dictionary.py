@@ -3,7 +3,9 @@
 from sets import Set #pacote de Set
 import os #pacote para leitura do diretorio
 import sys #pacote sys para exit
-diretorio = "/home/leandro/unicamp/mc906/cluster-txt/messages/"#diretorio das mensagens
+import enchant #verifica se uma palavra eh valida (instalado via yum)
+import inflect #instalado via easy_install
+diretorio = "/home/leandro/unicamp/mc906/lab/cluster-txt/messages/"#diretorio das mensagens
 #print "Entre com o diretorio dos documentos"
 #Diretorio = raw_input()
 arquivos = os.listdir(diretorio)#listando arquivos
@@ -50,39 +52,50 @@ def WriteDictionary():
     file = "dictionary"
     arq = open("./"+file,"w")#abrindo documento
     for d in dictionary:
-        arq.write(d[0]+"  "+d[1]+"\n")
+        arq.write(d[0]+"  "+str(d[1])+"\n")
+
+def findMinDic(d):
+   min = 1
+   pos = -1
+   for i in range(0,len(d)):
+      if d[i][1]< min:
+         min = d[i][1]
+         pos = i
+   return pos
+      
 
 def BuildDictionary(s):
     for i in s:
-        p_palavra = i[1] / totalPalavras #proporcao de ocorrencia da palavra pelo total de palavras
-        p_arq = i[2] / len(arquivos) #proporcao de qntos arquivo ocorre a palavra pelo total de arquivos
+        p_palavra = i[1] / float(totalPalavras) #proporcao de ocorrencia da palavra pelo total de palavras
+        p_arq = i[2] / float(len(arquivos)) #proporcao de qntos arquivo ocorre a palavra pelo total de arquivos
         ppa = p_palavra * p_arq #Prob de selecionar uma Palavra e esta estar em um determinado Arquivo
         tam = len(dictionary)
-        if tam > NUM_WORDS_DICTIONARY:
-            if ppa > dictionary[0][1]:
-                print ppa
-                dictionary[0][0] =i[0]
-                dictionary[0][1] = ppa
-        else:
-            dictionary.append([i[0],ppa])
-        dictionary.sort(key=lambda x: x[1]) #sort por ppa
+#        if tam > NUM_WORDS_DICTIONARY:
+#           min = findMinDic(dictionary)#busca pelo menor ppa
+#           if min >= 0 and dictionary[min][1] < ppa:
+#              dictionary[min][0] =i[0]
+#              dictionary[min][1] = ppa
+#        else:
+        dictionary.append([i[0],ppa])
+        dictionary.sort(key=lambda x: x[1])
     WriteDictionary()
     
 contador = 0
 totalPalavras = 0
+checkWord = enchant.Dict("en_US")
 for f in arquivos:
     contador += 1
     print contador
     arq = open(diretorio+f,"r")#abrindo documento
     texto = arq.read()#lendo texto do documento
     word = ""#palavra
-    node = [] #no que contem [palavra,n_ocorrencias,n_ocorrencia_arquivo]
     for c in texto:#lendo caracter por caracter no texto
         if c in separadores:#o caracter eh um separador de palavras?
             if word: #palavra nao pode ser vazia
                 if not word.isdigit():#consideramos alfanumericos e removemos apenas numeros
-                    word = word.lower()
-                    if len(word) > 3:#consideramos apenas palavras com mais de 3 digitos
+                    word = word.lower()#normalizando
+                    word = word.decode('iso-8859-1').encode('utf8')#alguns caracteres invalidos para utf8
+                    if len(word) > 3 and checkWord.check(word):#consideramos apenas palavras com mais de 3 digitos
                         totalPalavras =+ 1
                         if word in col_words:
                             UpdateDictionary(col_dictionary,word,f)
@@ -91,6 +104,7 @@ for f in arquivos:
             word = ""
         else:
             word = word + c
+#print col_dictionary
 BuildDictionary(col_dictionary)
         
 

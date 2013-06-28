@@ -6,6 +6,8 @@ import sys #pacote sys para exit
 import enchant #verifica se uma palavra eh valida (instalado via yum)
 import inflect #instalado via easy_install
 import numpy
+from numpy import vstack,array
+from numpy.random import rand
 from pylab import plot,show
 from descriptor import Descriptor
 import pylab
@@ -74,6 +76,18 @@ def findMinDic(d,ind):
    return pos
       
 
+def LoadDictionary():
+   print "***** LOAD DICTIONARY *****"
+   arq = open(diretorioRaiz+"dictionary","r")
+   texto = arq.read()
+   word = ""
+   for c in texto:
+      if c in separadores and word and not word.isdigit():#o caracter eh um separador de palavras? 
+         dictionary.append(word)
+         word = ""
+      else:
+         word += c
+
 def BuildDictionary(s):
    tam = 0
    for i in s:
@@ -131,29 +145,33 @@ if len(sys.argv) < 2:
       #print col_dictionary
       BuildDictionary(col_dictionary)
 else:
-   arq = open(diretorioRaiz+"dictionary","r")
-   texto = arq.read()
-   word = ""
-   for c in texto:
-      if c in separadores and word and not word.isdigit():#o caracter eh um separador de palavras? 
-         dictionary.append(word)
-         print word
-         word = ""
-      else:
-         word += c
+   LoadDictionary()
    desc = Descriptor(dictionary,arquivos)
    desc.load(diretorio)
    data = desc.getDesc()
 #   data = []
 #   for i in range(0,len(arquivos)):
 #      data = numpy.concatenate((data,predata[i]));
+   #centro sao os k clusters
    centro,dist = kmeans(data,20)#k=20 clusters
    code,distance = vq(data,centro)
-   res = centro[code]
+   res = centro[code] #matriz de pertinencia
+#   print centro
+   c=0
+   print centro
+   print len(res)
+#   for i in dist:
+#      print i
+#      print code[c]
+#      c+=1
+#   print c
+#   print len(code)
+#   print res
 #   colors = ([([0.4,1,0.4],[1,0.4,0.4],[0.1,0.8,1])[i] for i in idx])
-#   plot(data[idx==0,0],data[idx==0,1],'ob',
-#        data[idx==1,0],data[idx==1,1],'or')
-#   plot(res[:,0],res[:,1],'sg',markersize=8)
+#   plot(data[code==0,0],data[code==0,1],'ob',
+#        data[code==1,0],data[code==1,1],'or',
+#        data[code==2,0],data[code==2,1],'og')
+#   plot(centro[:,0],centro[:,1],'sg',markersize=8)
 #   show()
 
 

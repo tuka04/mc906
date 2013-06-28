@@ -10,14 +10,22 @@ class Descriptor:
         self.archives=a
         #iniciando matriz com zeros
         self.descriptor = numpy.zeros(shape=(len(a),len(d))) #matriz len(a) X len(d)
+    def printProcTimePast(self,total,past):
+        p = past*100/total
+        pontos = ""
+        for x in xrange(p):
+            pontos += "."
+        print pontos+" "+str(past*100/total)+"%"
     def getIndiceWord(self,w):#retorna o indice da palavra no dicionario
         for i in range(0,len(self.dictionary)):
             if self.dictionary[i]==w:
                 return i
         return -1
     def load(self,diretorio):
+        print "****** LOAD DESCRIPTOR ******"
         for i in range(0,len(self.archives)):
-            print diretorio+self.archives[i]
+            if i % 1000 == 0:
+                self.printProcTimePast(len(self.archives),i)
             arq = open(diretorio+self.archives[i],"r")#abrindo documento
             texto = arq.read()#lendo texto do documento
             word = ""#palavra

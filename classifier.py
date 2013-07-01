@@ -14,9 +14,9 @@ class Classifier:
         s = svm.SVC()#support vector classifier
         s.fit(self.data,self.training)
         self.prediction = s.predict(self.data)
-        pred = map(tuple,self.prediction)
-        print self.prediction
+        pred = vstack(self.prediction)
+        pred_h = set(tuple(r) for r in pred)
         print "Matriz de confusao"
-        mc = metrics.confusion_matrix(self.test, pred)
+        mc = metrics.confusion_matrix(self.test, pred_h)
         print mc
         desc = str(s).split('(')[0]

@@ -1,0 +1,118 @@
+%*************************************************
+\documentclass[a4paper,10pt]{article}
+\usepackage[brazil]{babel}
+\usepackage[utf8]{inputenc}
+%codigo
+%\usepackage[latin1]{inputenc}
+\usepackage{amsthm,amsfonts,amsmath,amssymb}
+%img
+\usepackage{graphicx}
+\usepackage{subfig}
+%tabela
+
+%fim
+%fim
+\usepackage{listings} 
+\usepackage{makeidx}
+\usepackage{enumerate}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks,
+  linkcolor=blue,
+  filecolor=blue,
+  urlcolor=blue,
+  citecolor=blue 
+}
+
+%titulo
+\title{TITULO}
+\author{Leandro Kümmel Tria Mendes}
+\makeindex
+%inicio
+\begin{document}
+\maketitle
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[scale=0.5]{logo.png}
+\end{figure}
+\newpage
+\section{Introdução}
+Nesse projeto iremos clusterizar e classificar um conjunto de mensagens, pertencentes a 20 newsgroups\footnote{\url{http://revistausenet.com/o-que-e-um-newsgroup-2/}}. Para isso, primeiro, consideramos a construção de um dicionário[\ref{itm:dicionario}]. Segundo, a clusterização[\ref{itm:cluster}] das mensagens e, por último, a classificação[\ref{itm:classificar}] das mesmas.
+\section{Requisitos}
+Desenvolvemos o trabalho inteiramente em Python (versão 2.7.1) \footnote{\url{http://www.python.org/}}, em um ambiente Linux (distribuição FedoraCore15: Kernel\_2.6.43.8-1.i686). Recomenda-se a instalação do \textbf{python-pip}\footnote{\url{https://pypi.python.org/pypi/pip}} e do gcc++. As bibliotecas utilizadas foram:
+\begin{itemize}
+\item \label{itm:proctext} \textbf{PyEnchant \footnote{\url{http://pythonhosted.org/pyenchant/}} \& Inflect\footnote{\url{https://pypi.python.org/pypi/inflect}}}: Bibliotecas para processamento textual. A primeira verifica se uma palavra é válida, inclusive se está escrita corretamente. Já a última converte plural para singular, também o contrário. Instalação: PyEnchant \emph{sudo yum install python-enchant.i686} e Inflect \emph{sudo easy\_install inflect}
+\item \label{itm:scikit} \textbf{scikit-learn\footnote{\url{http://scikit-learn.org}}}: Biblioteca que contém os algoritmos utilizados para classificação e clusterização das mensagens, tal com K-Means e SVM (Support Vector Machine).
+\end{itemize}
+\section{Dicionário}\label{itm:dicionario}
+As classes diretamente envolvidadas na construção do dicionário são: \emph{Parser, Dictionary e Diretorio}.
+\begin{itemize}
+\item \label{itm:parserpy} \emph{parser.py}: Possui as duas classes de uso comum, \emph{Parser e Diretorio}. A primeira, possui o atributo \emph{separadores} o qual possui alguns caracteres espciais, os quais não são considerados como uma palavra válida. 
+\lstinputlisting{../parser.py}
+\item \label{itm:dictionary} \emph{dictionary.py}: Classe que faz o parser da base de textos e
+seleciona as 100 palavras, de acordo com os critérios apresentados abaixo[\ref{itm:dicproxtext}]. Alguns trechos relevantes desse arquivos, vale notar o check() presente em \emph{inflect}.
+\begin{lstlisting}
+###### SELECAO DE PALAVRAS ########
+for c in texto:#lendo caracter por caracter no texto
+                if c in self.parser.separadores:#o caracter eh um separador de palavras?
+                    if word: #palavra nao pode ser vazia
+                        if not word.isdigit():#consideramos alfanumericos e removemos apenas numeros                             word = word.lower()#normalizando
+                            word = word.decode('iso-8859-1').encode('utf8')#alguns caracteres invalios para utf8
+                            if len(word) > 3 and self.parser.checkWord.check(word):#consideramos apeas palavras com mais de 3 digitos E PALAVRAS VALIDAS
+                                self.totalPalavras += 1
+                                if word in col_words:
+                                    self.updatePre(word,f)
+                                else:
+                                    col_words.add(word) #colecao de palavras
+                                    word = ""
+                            else:
+                                word = word + c
+######### PROBABILIDADE DE UMA PALAVRA ESTAR EM UM ARQUIVO ########
+            p_palavra = float(i[1]) / float(self.totalPalavras) #proporcao de ocorrencia da palavra pelo total de palavras
+            p_arq = float(i[2]) / float(len(self.arquivos)) #proporcao de qntos arquivo ocorre a palavra pelo total de arquivos
+            ppa = float(p_palavra * p_arq) #Prob de selecionar uma Palavra e esta estar em um determinado Arquivo
+\end{lstlisting}
+\end{itemize}
+A seleção de palavras para o dicionário, de tamanho igual a 100, seguiu os seguintes critérios listados abaixo.
+\subsection{Processamento das mensagens}\label{itm:dicproctext} Consideramos que uma palavra é válida quando têm um tamanho maior do que 2 (ou 3\footnote{considerando diferentes seeds para a clusterizacao com k-means}) caracteres e não possui alguns caracteres especiais, que estão em \emph{parser.py}[\ref{itm:parserpy}]. Após feita a essa seleção verificamos se a palavra está escrita corretamente, utilizando o \emph{check() do inflect}.
+\subsection{Probabilidade da palavra}\label{itm:dicprob} Cada palavra foi alocada em uma lista e junto a ela há o total de ocorrências dessa em todos os arquivos do newsgroup e o total de arquivos em que ela aparece.\\ Definimos a probabilidade de selecionarmos, aleatóriamente, uma palavra e esta estar em uma determinada mensagem como sendo:\\
+\begin{itemize}
+  \item \emph{Probabilidade de selecionar uma palavra (pp)} \label{itm:psp}: \boxed{pp = \frac{\sum_{Ocorrencias da Palavra}}{\sum_{i=1}^{N}}}onde N é o total de palavras, consideradas em [\ref{itm:dicproctext}]
+    \item \emph{Probabilidade de selecionar um arquivo (pa)}\label{itm:psa}: \boxed{pa = \frac{1}{\sum_{i=1}^{M}}}onde M é o total de arquivos, mensagens.
+      \item \emph{Probabilidade de selecionar uma palavra e estar em um arquivo (ppa)}: \boxed{ppa = \frac{pp}{pa}}
+\end{itemize}
+\subsection{Descritor}\label{itm:descriptor}
+Após a etapa de construção do dicionário [\ref{itm:dictionary}] implementamos um descritor
+para cada mensagem. Esse é simplesmente um matriz onde cada linha corresponde a um arquivo e 
+cada coluna corresponde a uma palavra do dicionário. Logo, o valor da matriz na linha L e coluna C é o total de ocorrências da palavra C no arquivo L.\\
+Essa estrutura, a qual denominaremos matriz descritora servirá de entrada para os métodos de clusterização e classificação das mensagens. Ela é gerada pelo arquivo \emph{descriptor.py}, o qual contém a classe \emph{Descriptor}, abaixo citamos os trechos relevantes, observa-se que utiza-se o mesmo método descrito em \emph{processamento das mensagens \ref{itm:dicproctext}}:
+\begin{lstlisting}
+#### CONTAGEM DAS OCORRENCIAS DAS PALAVRAS POR ARQUIVO ####
+for c in texto:#lendo caracter por caracter no texto
+                if c in self.parser.separadores: 
+                    if word:
+                        if not word.isdigit():#o caracter eh um separador de palavras? 
+                            word = word.lower()#normalizando
+                            word = word.decode('iso-8859-1').encode('utf8')#alguns caracteres invalidos para utf8
+                            if len(word) > 3 and self.parser.checkWord.check(word):#consideramos apenas palavras com mais de 3 digitos 
+                                iw = self.getIndiceWord(word)
+ #                               print str(i)+" "+str(iw)
+                                if iw >= 0:
+                                    self.descriptor[i][iw] += 1
+                    word = ""
+                else:
+                    word = word + c
+
+\end{lstlisting}
+\section{Clusterização}\label{itm:cluster}
+Para a clusterização, ou aglomeração, dos dados utilizamos um algoritmo presente em \emph{scikit-learn [\ref{itm:scikit}]} denominado K-Means, o qual objetiva particionar as observações, em K aglomerados\footnote{Nesse caso utilizamos K=20}, onde cada observação pertence ao cluster mais próximo da média, resultando em um \emph{Diagrama de Voronoi\footnote{\url{http://www.sgsi.com/MIUserGroup/Tech_FindNearest_SGSI.htm}}}. O código esta presente na classe \emph{Cluster}, localizada no arquivo \emph{cluster.py}. Como resultado mostramos a matriz de pertinência e fizemos uma análise de sensibilidade para dois seeds diferentes.
+\lstinputlisting{../cluster.py}
+\section{Classificação}\label{itm:classificar}
+Para a classificação das mensagens utilizamos, também, o \emph{scikit-learn [\ref{itm:scikit}]},
+porém o algoritmo utilizado foi o \emph{SVM}, ou, \emph{Support Vector Machine}.  O SVM utilizado tem como entrada um conjunto descritor e prediz, para cada entrada dada, qual as possíveis classes a entrada faz parte, o que faz do SVM um classificado linear não probabilístico. O código esta presente na classe \emph{Classifier}, localizada no arquivo \emph{classifier.py}. Como resultado mostramos a matriz de confusão e a média de acerto.
+\lstinputlisting{../classifier.py}
+\section{Resultados}
+Os resultados estão presentes na pasta \emph{./resultados/}, sendo que, \emph{dictionary} é o dicionário com as 100 palavras, \emph{mpert} é a matriz de pertinência, \emph{mconf} a matriz de confusão e \emph{media} a média de acertos.
+\section{Conclusão}
+Observamos que para a construção do dicionário, foi necessário levar em conta o que é realmente uma palavra válida, ou seja, números e caracteres especias não foram considerados. O algoritmo de clusterização, ou k-means, obteve um baixa diferença de sensibilidade para um conjunto diferente de sementes (seeds), para o primeiro obtivemos uma sensibilidade de 5.8438, já para o segundo de 5.1649.
+\end{document}

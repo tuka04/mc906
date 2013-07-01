@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+# encoding: utf-8
+from sets import Set #pacote de Set
+import os #pacote para leitura do diretorio
+import sys #pacote sys para exit
+import enchant #verifica se uma palavra eh valida (instalado via yum)
+import inflect #verifica plural 
+import numpy
+from numpy import vstack,array
+from numpy.random import rand
+from pylab import plot,show
+from descriptor import Descriptor
+import pylab
+from scipy.cluster.vq import kmeans,vq,whiten
+import matplotlib
+from matplotlib import pyplot as plt
+matplotlib.use('Agg')

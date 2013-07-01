@@ -5,3 +5,6 @@
 PACOTES 
 pyenchant
 adding inflect 0.2.4 
+python-pip (yum)
+
+pip-python install scikit-learn (precisa do gcc++)

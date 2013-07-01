@@ -11,12 +11,14 @@ from numpy.random import rand
 from pylab import plot,show
 from descriptor import Descriptor
 import pylab
-from scipy.cluster.vq import kmeans,vq
+from scipy.cluster.vq import kmeans,vq,whiten
 import matplotlib
 from matplotlib import pyplot as plt
 matplotlib.use('Agg')
 
-diretorioRaiz="/home/leandro/unicamp/mc906/"#diretorio das mensagens
+from sklearn import svm #suport vector machine
+from svm import *
+diretorioRaiz="/home/leandro/unicamp/mc906/lab/"#diretorio das mensagens
 diretorio = diretorioRaiz+"cluster-txt/messages/"#diretorio das mensagens
 #print "Entre com o diretorio dos documentos"
 #Diretorio = raw_input()
@@ -149,21 +151,32 @@ else:
    desc = Descriptor(dictionary,arquivos)
    desc.load(diretorio)
    data = desc.getDesc()
+   ndata = whiten(data)#data normalizada
 #   data = []
 #   for i in range(0,len(arquivos)):
 #      data = numpy.concatenate((data,predata[i]));
    #centro sao os k clusters
-   centro,dist = kmeans(data,20)#k=20 clusters
-   code,distance = vq(data,centro)
+   centro,dist = kmeans(ndata,20)#
+   code,_ = vq(ndata,centro)
    res = centro[code] #matriz de pertinencia
+   c = list([])
+   for i in code:
+      c.append(i)
 #   print centro
-   c=0
-   print centro
-   print len(res)
-#   for i in dist:
-#      print i
-#      print code[c]
-#      c+=1
+   for i in range(0,len(centro)):
+      min = -1
+      for j in range(0,len(centro[i])):
+         if min < 0:
+            min = centro[i][j]
+         elif centro[i][j] < min:
+            min = centro[i][j]
+            idword = j
+      print "Grupo"+str(i)+" Palavra: "+dictionary[idword]
+   clf = svm.SVC(kernel='linear')
+   clf.fit(c, ndata)
+   z = clf.predict(ndata[0])
+   print z
+#   print p
 #   print c
 #   print len(code)
 #   print res
